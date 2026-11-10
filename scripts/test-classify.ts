@@ -60,10 +60,11 @@ await setKeyStatus(fakeId, "exhausted"); // محاكاة مفتاح رد 402 و�
 
 const pool = await getKeyPool(["kie", "cometapi"]);
 assert(pool.some((k) => k.id === fakeId), "المفتاح المستنزف يبقى في القائمة (لا يُستبعد)");
-const realIdx = pool.findIndex((k) => k.apiKey === "aaaabbbbccccddddeeeeffff00001111");
+assert(pool.length >= 2, "المجمع يجلب مفاتيح المزودين المتاحة");
+// الترتيب تسلسلي صارم حسب الإضافة: المفتاح المُدخل الآن (الأحدث) يقع آخر القائمة —
+// أي مفاتيح أقدم تُجرَّب قبله رغم حالة المستنزف (لا يعرقل تسلسل الإضافة)
 const fakeIdx = pool.findIndex((k) => k.id === fakeId);
-assert(realIdx !== -1 && fakeIdx !== -1, "المفتاح الحقيقي والمستنزف موجودان في المجمع");
-assert(realIdx < fakeIdx, "الترتيب تسلسلي حسب الإضافة (الحقيقي الأقدم أولًا) — المستنزف لا يعرقل ما بعده");
+assert(fakeIdx === pool.length - 1, "الترتيب تسلسلي حسب الإضافة — الأحدث آخر القائمة");
 assert(!pool.some((k) => k.status === "disabled"), "المفتاح المعطّل (disabled) هو الوحيد المستبعد");
 
 await deleteKey(fakeId);
